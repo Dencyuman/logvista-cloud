@@ -4,7 +4,7 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import { useState } from 'react';
+import { SetStateAction, useState } from 'react';
 
 import Sidescreen from '../components/Sidescreen';
 import Header from '../components/Header';
@@ -16,8 +16,15 @@ export type Page = {
     iconClassName: string;
 }
 
+export type AppContextType = {
+    handlePageChange: (page: Page) => void;
+};
+
 export default function AppTemplate() {
     const [visible, setVisible] = useState(false);
+    const handlePageChange = (page: SetStateAction<{ name: string; path: string; iconClassName: string; }>) => {
+        setSelectedPage(page);
+      };
     const pages = [
         { name: 'Home', path: '/', iconClassName: 'pi pi-home' },
         { name: 'Overview', path: '/overview', iconClassName: 'pi pi-th-large'},
@@ -35,7 +42,7 @@ export default function AppTemplate() {
                 <Sidescreen visible={visible} setVisible={setVisible} selectedPage={selectedPage} setSelectedPage={setSelectedPage} pages={pages}/>
                 <Header selectedPage={selectedPage} setVisible={setVisible} imageLink={imageLink ? imageLink : undefined}/>
                 <div className="px-6 m-auto container">
-                    <Outlet />
+                    <Outlet context={{ handlePageChange }}/>
                 </div>
             </div>
         </div>

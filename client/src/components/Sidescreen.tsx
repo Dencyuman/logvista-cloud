@@ -4,7 +4,7 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from 'primereact/sidebar';
 import { ListBox } from 'primereact/listbox';
 
@@ -20,6 +20,8 @@ interface SidescreenProps{
 
 export default function Sidescreen({visible, setVisible, selectedPage, setSelectedPage, pages}: SidescreenProps) {
     const navigate = useNavigate();
+    const location = useLocation();
+
     const countryTemplate = (option: Page) => {
         return (
             <div className="flex gap-4 align-items-center">
@@ -34,8 +36,11 @@ export default function Sidescreen({visible, setVisible, selectedPage, setSelect
     };
 
     const handleSelectionChange = (selectedPage: Page) => {
-        setSelectedPage(selectedPage);
-        navigate(selectedPage?.path);
+        // 同じページが選択された場合は遷移しない
+        if (location.pathname !== selectedPage.path) {
+            setSelectedPage(selectedPage);
+            navigate(selectedPage?.path);
+        }
         setVisible(false);
     }
 

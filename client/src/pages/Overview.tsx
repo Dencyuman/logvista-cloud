@@ -9,10 +9,11 @@ import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { DataView } from 'primereact/dataview';
 import { Tag } from 'primereact/tag';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { overviewLayout } from '../service/SystemService';
 import { OverviewData, OverviewChart } from '../components/charts/OverviewChart';
 import apiClient, { SchemasSummary, SchemasSummaryData } from '../ApiClient'
+import { AppContextType } from '../templates/AppTemplate';
 
 
 export default function Overview() {
@@ -44,16 +45,23 @@ export default function Overview() {
             console.error("Error fetching data: ", error);
         }
     };
-
+    
     useEffect(() => {
         fetchData();
-
+        
         // TODO: 5秒ごとにデータを更新する
         // const interval = setInterval(fetchData, 5000);
         // return () => clearInterval(interval);
     }, []);
 
+    const { handlePageChange } = useOutletContext<AppContextType>();
     const redirectToDashboard = () => {
+        const dashboardPage = {
+            name: 'DashBoard',
+            path: '/dashboard',
+            iconClassName: 'pi pi-chart-bar'
+        };
+        handlePageChange(dashboardPage);
         navigate('/dashboard');
     };
 
@@ -124,6 +132,9 @@ export default function Overview() {
     };
 
     const gridItem = (summary: SchemasSummary) => {
+        // 各ボタンに一意のクラス名を生成
+        const buttonClassName = `goToDashboardButton-${summary.id}`;
+
         return (
             <div className="col-12 py-3 sm:px-3 lg:col-6 xl:col-4">
                 <div className="p-4 border-1 surface-border surface-card border-round">
@@ -147,7 +158,8 @@ export default function Overview() {
                         </div>
                     </div>
                     <div className="flex align-items-center justify-content-between flex-row-reverse">
-                        <Button className="myButton" icon="pi pi-chart-bar" rounded onClick={redirectToDashboard}></Button>
+                        <Button className={buttonClassName} icon="pi pi-chart-bar" rounded onClick={redirectToDashboard}></Button>
+                        <Tooltip target={`.${buttonClassName}`} content="Jump to DashBoard." position="left"/>
                     </div>
                 </div>
             </div>
@@ -166,7 +178,7 @@ export default function Overview() {
     return (
         <div className="card">
             <h1>System Overview</h1>
-            <Tooltip target=".myButton" content="Jump to DashBoard." position="left"/>
+            <Tooltip target=".goToDashBoardButton" content="Jump to DashBoard." position="left"/>
             <DataView value={summary} itemTemplate={itemTemplate} layout={'grid'}/>
         </div>
     )

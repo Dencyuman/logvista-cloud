@@ -7,8 +7,14 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { Button } from 'primereact/button';
 import { BreadCrumb } from 'primereact/breadcrumb';
 import { Page } from '../templates/AppTemplate';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
+import { useEffect, useState } from 'react';
+
+type BreadcrumbItem = {
+    label: string;
+    command?: () => void;
+};
 
 type HeaderProps = {
     selectedPage: Page;
@@ -18,19 +24,27 @@ type HeaderProps = {
 
 export default function Header({ selectedPage, setVisible, imageLink }: HeaderProps) {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([]);
 
-    const breadcrumbItems = [{
-        label: selectedPage.name,
-        command: () => {
-            navigate(selectedPage.path);
-        }
-    }];
+    useEffect(() => {
+        // パスが変わるたびにブレッドクラムを更新する
+        setBreadcrumbItems([
+            {
+                label: selectedPage.name,
+                command: () => {
+                    navigate(selectedPage.path);
+                }
+            }
+        ]);
+    }, [location, selectedPage, navigate]);
+
     const home = {
         icon: 'pi pi-home',
         command: () => {
             navigate('/');
         }
-    }
+    };
 
     return (
         <div className="flex justify-content-between">
