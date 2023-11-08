@@ -27,13 +27,15 @@ export interface OverviewChartProps {
 
 // 関数コンポーネントの引数は、propsオブジェクトです。
 export function OverviewChart({data, layout}: OverviewChartProps) {
+    const reversedData = [...data].reverse();
+
     return (
         <div style={{ width:"100%", height: "300px" }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     width={500}
                     height={300}
-                    data={data}
+                    data={reversedData}
                     margin={{
                         top: 20,
                         right: 60,

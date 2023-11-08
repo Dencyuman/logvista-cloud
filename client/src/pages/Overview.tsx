@@ -10,52 +10,84 @@ import { Tooltip } from 'primereact/tooltip';
 import { DataView } from 'primereact/dataview';
 import { Tag } from 'primereact/tag';
 import { useNavigate } from 'react-router-dom';
-import { overviewLayout, SystemService } from '../service/SystemService';
+import { overviewLayout } from '../service/SystemService';
 import { OverviewData, OverviewChart } from '../components/charts/OverviewChart';
+import apiClient, { SchemasSummary, SchemasSummaryData } from '../ApiClient'
 
-
-interface System {
-    id: string;
-    name: string;
-    latestTimestamp: Date;
-    status: string;
-    category?: string;
-    data: OverviewData[];
-}
 
 export default function Overview() {
     const navigate = useNavigate();
-    const [systems, setSystems] = useState<System[]>([]);
+    // const [systems, setSystems] = useState<System[]>([]);
+    const [summary, setSummary] = useState<SchemasSummary[]>([]);
+
+    function formatBaseTime(date: Date): string {
+        return new Intl.DateTimeFormat('ja-JP', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }).format(date);
+    }
+
+    function convertToOverviewData(schemasData: SchemasSummaryData[]): OverviewData[] {
+        return schemasData.map((data) => ({
+            name: formatBaseTime(new Date(data.base_time)),
+            INFO: data.infolog_count,
+            WARNING: data.warninglog_count,
+            ERROR: data.errorlog_count
+        }));
+    }
+
+    const fetchData = async () => {
+        try {
+            const res = await apiClient.systemsSummaryGet();
+            setSummary(res.data);
+        } catch (error) {
+            console.error("Error fetching data: ", error);
+        }
+    };
 
     useEffect(() => {
-        SystemService.getSystems().then((data) => {
-            const systemsWithDefaults = data.slice(0, 18).map(system => ({
-                ...system,
-                latestTimestamp: system.latestTimestamp ?? new Date()
-            }));
-            setSystems(systemsWithDefaults);
-        });
+        fetchData();
+
+        // TODO: 5秒ごとにデータを更新する
+        // const interval = setInterval(fetchData, 5000);
+        // return () => clearInterval(interval);
     }, []);
 
     const redirectToDashboard = () => {
         navigate('/dashboard');
     };
 
-    const getSeverity = (system: System) => {
-        switch (system.status) {
-            case 'NORMAL':
+    const getSeverity = (summary: SchemasSummary) => {
+        switch (summary.latest_log.level_name) {
+            case 'INFO':
                 return 'success';
 
             case 'WARNING':
                 return 'warning';
 
-            case 'ERRORED':
+            case 'ERROR':
                 return 'danger';
 
             default:
                 return null;
         }
     };
+
+    const convertLevelNameToStatus = (levelName: string) => {
+        switch (levelName) {
+            case 'INFO':
+                return 'NORMAL';
+
+            case 'WARNING':
+                return 'WARNING';
+
+            case 'ERROR':
+                return 'ERRORED';
+
+            default:
+                return null;
+        }
+    }
 
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('ja-JP', {
@@ -91,26 +123,26 @@ export default function Overview() {
         }
     };
 
-    const gridItem = (system: System) => {
+    const gridItem = (summary: SchemasSummary) => {
         return (
             <div className="col-12 py-3 sm:px-3 lg:col-6 xl:col-4">
                 <div className="p-4 border-1 surface-border surface-card border-round">
                     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
                         <div className="flex align-items-center gap-2">
                             <i className="pi pi-tag"></i>
-                            <span className="font-semibold">{system.category || 'Others'}</span>
+                            <span className="font-semibold">{summary.category || 'Others'}</span>
                         </div>
-                        <Tag value={system.status} severity={getSeverity(system)}></Tag>
+                        <Tag value={convertLevelNameToStatus(summary.latest_log.level_name)} severity={getSeverity(summary)}></Tag>
                     </div>
                     <div className="flex flex-column align-items-center gap-3 pt-5 pb-2">
-                        <div className="text-2xl font-bold w-full">{system.name}</div>
-                        <OverviewChart data={system.data} layout={overviewLayout} />
+                        <div className="text-2xl font-bold w-full">{summary.name}</div>
+                        <OverviewChart data={convertToOverviewData(summary.data)} layout={overviewLayout} />
                         <div className="w-full">
                             <h4 className="m-0 p-0 font-bold">最新取得ログ</h4>
                             <div className="text-base flex flex-wrap:wrap gap-2 align-items-baseline">
-                                <div>{formatDate(system.latestTimestamp)}</div>
-                                <div>{formatTime(system.latestTimestamp)}</div>
-                                <div>({timeAgo(system.latestTimestamp)})</div>
+                                <div>{formatDate(new Date(summary.latest_log.timestamp))}</div>
+                                <div>{formatTime(new Date(summary.latest_log.timestamp))}</div>
+                                <div>({timeAgo(new Date(summary.latest_log.timestamp))})</div>
                             </div>
                         </div>
                     </div>
@@ -122,20 +154,20 @@ export default function Overview() {
         );
     };
 
-    const itemTemplate = (system: System) => {
-        if (!system) {
+    const itemTemplate = (summary: SchemasSummary) => {
+        if (!summary) {
             return;
         }
 
-        return gridItem(system);
+        return gridItem(summary);
     };
 
 
     return (
         <div className="card">
-            <h1 className="my-3 sm:px-3">System Overview</h1>
+            <h1>System Overview</h1>
             <Tooltip target=".myButton" content="Jump to DashBoard." position="left"/>
-            <DataView value={systems} itemTemplate={itemTemplate} layout={'grid'}/>
+            <DataView value={summary} itemTemplate={itemTemplate} layout={'grid'}/>
         </div>
     )
 }
