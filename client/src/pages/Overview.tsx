@@ -15,7 +15,8 @@ import { OverviewData, OverviewChart } from '../components/charts/OverviewChart'
 import apiClient, { SchemasSummary, SchemasSummaryData } from '../ApiClient'
 import { AppContextType } from '../templates/AppTemplate';
 import { SkeletonGridItem } from '../components/overview/Skelton';
-import CategoryTag from '../components/overview/CategoryTag';
+import CategoryTag from '../components/dialogs/CategoryTag';
+import LogDetailDialog from '../components/dialogs/LogDetailDialog';
 
 
 export default function Overview() {
@@ -156,6 +157,33 @@ export default function Overview() {
         }
     };
 
+    const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
+
+    const fetchCategories = async () => {
+        try {
+            const res = await apiClient.systemsGet();
+            const categories = res.data
+                .map((system) => system.category)
+                .filter((category): category is string => !!category); // undefined または空の文字列を除外
+            const uniqueCategories = Array.from(new Set(categories)); // 重複を除外
+            setUniqueCategories(uniqueCategories);
+        } catch (error) {
+            console.error("Error fetching categories: ", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+
+    const [logDetailVisible, setLogDetailVisible] = useState(false);
+    const [selectedSummary, setSelectedSummary] = useState<SchemasSummary | null>(null);
+
+    const showLogDetails = (summary: SchemasSummary) => {
+        setSelectedSummary(summary);
+        setLogDetailVisible(true);
+    };
+
     const gridItem = (summary: SchemasSummary) => {
         // 各ボタンに一意のクラス名を生成
         const buttonClassName = `goToDashboardButton-${summary.id}`;
@@ -164,7 +192,12 @@ export default function Overview() {
             <div className="col-12 py-3 sm:px-3 lg:col-6 xl:col-4">
                 <div className="p-4 border-1 surface-border surface-card border-round">
                     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-                        <CategoryTag summary={summary} onCategoryChange={refreshSummary}/>
+                        <CategoryTag
+                            summary={summary}
+                            onCategoryChange={refreshSummary}
+                            uniqueCategories={uniqueCategories}
+                            fetchCategories={fetchCategories}
+                        />
                         <Tag value={convertLevelNameToStatus(summary.latest_log.level_name)} severity={getSeverity(summary)}></Tag>
                     </div>
                     <div className="flex flex-column align-items-center gap-3 pt-5 pb-2">
@@ -172,7 +205,7 @@ export default function Overview() {
                         <OverviewChart data={convertToOverviewData(summary.data)} layout={overviewLayout} />
                     </div>
                     <div className="flex align-items-center justify-content-between flex-row">
-                        <div className="w-10 p-2 border-round-sm cursor-pointer hover:surface-100">
+                        <div className="w-10 p-2 border-round-sm cursor-pointer hover:surface-100" onClick={() => showLogDetails(summary)}>
                             <h4 className="m-0 p-0 font-bold">最新取得ログ</h4>
                             <div className="text-base flex flex-wrap items-baseline">
                                 <div className="mr-2">{formatDate(new Date(summary.latest_log.timestamp))}</div>
@@ -203,6 +236,14 @@ export default function Overview() {
             <h1 className="sm:px-3">System Overview</h1>
             <Tooltip target=".goToDashBoardButton" content="Jump to DashBoard." position="left"/>
             <DataView value={summary} itemTemplate={itemTemplate} layout={'grid'}/>
+            {selectedSummary && (
+                <LogDetailDialog
+                    title="最新ログ詳細"
+                    summary={selectedSummary}
+                    visible={logDetailVisible}
+                    onHide={() => setLogDetailVisible(false)}
+                />
+            )}
         </div>
     )
 }

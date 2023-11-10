@@ -4,7 +4,7 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import apiClient, { SchemasSummary } from "../../ApiClient";
 import { Dialog } from 'primereact/dialog';
 import { AutoComplete } from 'primereact/autocomplete';
@@ -13,45 +13,28 @@ import { Toast } from 'primereact/toast';
 
 type CategoryTagProps = {
     summary: SchemasSummary;
-    onCategoryChange: () => void; // コールバック関数の型を定義
+    onCategoryChange: () => void;
+    uniqueCategories: string[];
+    fetchCategories: () => Promise<void>;
 };
 
-export default function CategoryTag({ summary, onCategoryChange }: CategoryTagProps) {
-    const [uniqueCategories, setUniqueCategories] = useState<string[]>([]);
+export default function CategoryTag({ summary, onCategoryChange, uniqueCategories, fetchCategories }: CategoryTagProps) {
     const [filteredCategories, setFilteredCategories] = useState<string[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>(summary.category || "");
     const [displayDialog, setDisplayDialog] = useState(false);
     const toast = useRef<Toast>(null);
 
-    const fetchCategories = () => {
-        apiClient.systemsGet().then((res) => {
-            const categories = res.data
-                .map((system) => system.category)
-                .filter((category, index, self) => category && self.indexOf(category) === index);
-            setUniqueCategories(categories as string[]);
-        }).catch(() => {
+    const onConfirm = async () => {
+        try {
+            await apiClient.systemsPut(summary.id, { category: selectedCategory });
+            setDisplayDialog(false);
+            await fetchCategories();
+            onCategoryChange();
+        } catch (error) {
             if (toast.current) {
-                toast.current.show({ severity: 'error', summary: 'エラー', detail: 'カテゴリの取得に失敗しました。', life: 3000});
+                toast.current.show({ severity: 'error', summary: 'エラー', detail: 'カテゴリの更新に失敗しました。', life: 3000});
             }
-        });
-    };
-
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    const onConfirm = () => {
-        apiClient.systemsPut(summary.id, { category: selectedCategory })
-            .then(() => {
-                setDisplayDialog(false); // ダイアログを閉じる
-                fetchCategories(); // 更新後にカテゴリを再取得
-                onCategoryChange(); // 親コンポーネントへの変更通知
-            })
-            .catch(() => {
-                if (toast.current) {
-                    toast.current.show({ severity: 'error', summary: 'エラー', detail: 'カテゴリの更新に失敗しました。', life: 3000});
-                }
-            });
+        }
     };
 
     const searchCategory = (event: { query: string }) => {
@@ -97,14 +80,14 @@ export default function CategoryTag({ summary, onCategoryChange }: CategoryTagPr
                             completeMethod={searchCategory}
                             dropdown
                             onChange={(e) => setSelectedCategory(e.value)}
-                            className='mb-2 col'
+                            className='my-2 col'
                             onKeyDown={handleKeyDown}
                         />
                     </div>
                     {selectedCategory !== "" && <p>カテゴリを <span className="font-semibold">{selectedCategory}</span> に設定しますか？</p>}
                     <div className="flex gap-2 justify-content-end">
-                        <Button className="p-button-outlined" size='small' style={{ minWidth: '120px' }} label="Yes" onClick={onConfirm} />
-                        <Button className="p-button" size='small' style={{ minWidth: '120px' }} label="Cancel" onClick={onHideDialog} />
+                        <Button className="p-button" size='small' style={{ minWidth: '120px' }} label="Yes" onClick={onConfirm} />
+                        <Button className="p-button-outlined" size='small' style={{ minWidth: '120px' }} label="Cancel" onClick={onHideDialog} />
                     </div>
                 </div>
             </Dialog>
