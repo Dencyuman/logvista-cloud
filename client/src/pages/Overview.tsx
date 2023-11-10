@@ -14,12 +14,23 @@ import { overviewLayout } from '../service/SystemService';
 import { OverviewData, OverviewChart } from '../components/charts/OverviewChart';
 import apiClient, { SchemasSummary, SchemasSummaryData } from '../ApiClient'
 import { AppContextType } from '../templates/AppTemplate';
+import { SkeletonGridItem } from '../components/overview/Skelton';
+import CategoryTag from '../components/overview/CategoryTag';
 
 
 export default function Overview() {
     const navigate = useNavigate();
     // const [systems, setSystems] = useState<System[]>([]);
     const [summary, setSummary] = useState<SchemasSummary[]>([]);
+
+    const refreshSummary = async () => {
+        try {
+            const res = await apiClient.systemsSummaryGet();
+            setSummary(res.data);
+        } catch (error) {
+            console.error("Error fetching summary: ", error);
+        }
+    };
 
     function formatBaseTime(date: Date): string {
         return new Intl.DateTimeFormat('ja-JP', {
@@ -47,11 +58,31 @@ export default function Overview() {
     };
 
     useEffect(() => {
-        fetchData();
+        // スケルトン用のダミーデータをセット
+        const skeletonData = Array(6).fill(null); // 6は表示したいスケルトンの数
+        setSummary(skeletonData);
 
-        // TODO: 5秒ごとにデータを更新する
-        // const interval = setInterval(fetchData, 5000);
-        // return () => clearInterval(interval);
+        // 実際のデータをフェッチする関数を定義
+        const fetchAndSetData = async () => {
+            try {
+                await fetchData(); // fetchData 内で setSummary が呼ばれると想定
+            } catch (error) {
+                console.error("Error fetching data: ", error);
+            }
+        };
+        // 初回のデータフェッチを実行
+        fetchAndSetData();
+        // 5秒ごとにデータを更新するためのインターバルを設定
+        const interval = setInterval(fetchAndSetData, 5000);
+        // 1分後にデータのリアルタイム更新を停止するタイマーを設定
+        const timer = setTimeout(() => {
+            clearInterval(interval);
+        }, 120000); // 1分 = 120000ミリ秒
+        // コンポーネントのアンマウント時にインターバルとタイマーをクリア
+        return () => {
+            clearInterval(interval);
+            clearTimeout(timer);
+        };
     }, []);
 
     const { handlePageChange } = useOutletContext<AppContextType>();
@@ -133,10 +164,7 @@ export default function Overview() {
             <div className="col-12 py-3 sm:px-3 lg:col-6 xl:col-4">
                 <div className="p-4 border-1 surface-border surface-card border-round">
                     <div className="flex flex-wrap align-items-center justify-content-between gap-2">
-                        <div className="flex align-items-center gap-2 py-2 border-round-sm cursor-pointer hover:surface-100">
-                            <i className="pi pi-tag"></i>
-                            <span className="font-semibold">{summary.category || 'Others'}</span>
-                        </div>
+                        <CategoryTag summary={summary} onCategoryChange={refreshSummary}/>
                         <Tag value={convertLevelNameToStatus(summary.latest_log.level_name)} severity={getSeverity(summary)}></Tag>
                     </div>
                     <div className="flex flex-column align-items-center gap-3 pt-5 pb-2">
@@ -146,10 +174,10 @@ export default function Overview() {
                     <div className="flex align-items-center justify-content-between flex-row">
                         <div className="w-10 p-2 border-round-sm cursor-pointer hover:surface-100">
                             <h4 className="m-0 p-0 font-bold">最新取得ログ</h4>
-                            <div className="text-base flex flex-wrap:wrap gap-2 align-items-baseline">
-                                <div>{formatDate(new Date(summary.latest_log.timestamp))}</div>
-                                <div>{formatTime(new Date(summary.latest_log.timestamp))}</div>
-                                <div>({timeAgo(new Date(summary.latest_log.timestamp))})</div>
+                            <div className="text-base flex flex-wrap items-baseline">
+                                <div className="mr-2">{formatDate(new Date(summary.latest_log.timestamp))}</div>
+                                <div className="mr-2">{formatTime(new Date(summary.latest_log.timestamp))}</div>
+                                <div className="mr-2">({timeAgo(new Date(summary.latest_log.timestamp))})</div>
                             </div>
                         </div>
                         <Button className={buttonClassName} icon="pi pi-chart-bar" onClick={redirectToDashboard} rounded text severity="secondary"></Button>
@@ -160,11 +188,12 @@ export default function Overview() {
         );
     };
 
-    const itemTemplate = (summary: SchemasSummary) => {
+    const itemTemplate = (summary: SchemasSummary | null) => {
         if (!summary) {
-            return;
+        return <SkeletonGridItem />;
         }
 
+        // データがある場合は通常のアイテム表示を行う
         return gridItem(summary);
     };
 
