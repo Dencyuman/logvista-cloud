@@ -7,7 +7,7 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { Button } from 'primereact/button';
 import { BreadCrumb } from 'primereact/breadcrumb';
 import { Page } from '../templates/AppTemplate';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { useEffect, useState } from 'react';
 
@@ -24,11 +24,9 @@ type HeaderProps = {
 
 export default function Header({ selectedPage, setVisible, imageLink }: HeaderProps) {
     const navigate = useNavigate();
-    const location = useLocation();
     const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([]);
 
     useEffect(() => {
-        // パスが変わるたびにブレッドクラムを更新する
         setBreadcrumbItems([
             {
                 label: selectedPage.name,
@@ -37,7 +35,7 @@ export default function Header({ selectedPage, setVisible, imageLink }: HeaderPr
                 }
             }
         ]);
-    }, [location, selectedPage, navigate]);
+    }, [selectedPage, navigate]);
 
     const home = {
         icon: 'pi pi-home',
