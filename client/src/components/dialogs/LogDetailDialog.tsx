@@ -50,7 +50,7 @@ export default function LogDetailDialog({ title, summary, visible, onHide }: Log
 
     return (
         <Dialog header={title} visible={visible} style={{ width: '70vw' }} onHide={onHide} modal>
-            <div className="flex align-items-center gap-2 border-round-sm">
+            <div className="inline-flex py-1 px-2 align-items-center gap-2 border-round-sm surface-100">
                 <i className="pi pi-tag"></i>
                 <span className="font-semibold">{summary.category}</span>
             </div>

@@ -100,7 +100,7 @@ export default function Overview() {
     const getSeverity = (summary: SchemasSummary) => {
         switch (summary.latest_log.level_name) {
             case 'INFO':
-                return 'success';
+                return 'info';
             case 'WARNING':
                 return 'warning';
             case 'ERROR':
@@ -184,6 +184,14 @@ export default function Overview() {
         setLogDetailVisible(true);
     };
 
+    // headerを定義
+
+    const header = (
+        <div className="flex justify-content-between align-items-center">
+            <h1 className="m-0">System Overview</h1>
+        </div>
+    );
+
     const gridItem = (summary: SchemasSummary) => {
         // 各ボタンに一意のクラス名を生成
         const buttonClassName = `goToDashboardButton-${summary.id}`;
@@ -202,7 +210,18 @@ export default function Overview() {
                     </div>
                     <div className="flex flex-column align-items-center gap-3 pt-5 pb-2">
                         <div className="text-2xl font-bold w-full">{summary.name}</div>
-                        <OverviewChart data={convertToOverviewData(summary.data)} layout={overviewLayout} />
+                        <OverviewChart
+                            data={convertToOverviewData(summary.data)}
+                            layout={overviewLayout}
+                            customLayoutProps={{
+                                width: "100%",
+                                height: "300px",
+                                top: 20,
+                                right: 60,
+                                left: 20,
+                                bottom: 5
+                            }}
+                        />
                     </div>
                     <div className="flex align-items-center justify-content-between flex-row">
                         <div className="w-10 p-2 border-round-sm cursor-pointer hover:surface-100" onClick={() => showLogDetails(summary)}>
@@ -223,19 +242,16 @@ export default function Overview() {
 
     const itemTemplate = (summary: SchemasSummary | null) => {
         if (!summary) {
-        return <SkeletonGridItem />;
+            return <SkeletonGridItem />;
         }
 
-        // データがある場合は通常のアイテム表示を行う
         return gridItem(summary);
     };
 
-
     return (
         <div className="card">
-            <h1 className="sm:px-3">System Overview</h1>
             <Tooltip target=".goToDashBoardButton" content="Jump to DashBoard." position="left"/>
-            <DataView value={summary} itemTemplate={itemTemplate} layout={'grid'}/>
+            <DataView value={summary} layout={"grid"} itemTemplate={itemTemplate} header={header} />
             {selectedSummary && (
                 <LogDetailDialog
                     title="最新ログ詳細"

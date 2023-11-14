@@ -23,24 +23,41 @@ export interface Layout {
 export interface OverviewChartProps {
     data: OverviewData[];
     layout: Layout[];
+    customLayoutProps?: CustomLayouyProps;
+}
+
+export interface CustomLayouyProps {
+    width?: string;
+    height?: string;
+    top?: number;
+    right?: number;
+    left?: number;
+    bottom?: number;
 }
 
 // 関数コンポーネントの引数は、propsオブジェクトです。
-export function OverviewChart({data, layout}: OverviewChartProps) {
+export function OverviewChart({data, layout, customLayoutProps = {
+    width: '100%',
+    height: '100%',
+    top: 0,
+    right: 0,
+    left: 0,
+    bottom: 0
+}}: OverviewChartProps) {
     const reversedData = [...data].reverse();
 
     return (
-        <div style={{ width:"100%", height: "300px" }}>
+        <div style={{ width:customLayoutProps.width, height: customLayoutProps.height }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     width={500}
                     height={300}
                     data={reversedData}
                     margin={{
-                        top: 20,
-                        right: 60,
-                        left: 20,
-                        bottom: 5,
+                        top: customLayoutProps.top,
+                        right: customLayoutProps.right,
+                        left: customLayoutProps.left,
+                        bottom: customLayoutProps.bottom,
                     }}
                 >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -49,11 +66,6 @@ export function OverviewChart({data, layout}: OverviewChartProps) {
                     <Tooltip />
                     <Legend
                         layout="horizontal"
-                        wrapperStyle={{
-                            paddingTop: '10px',
-                            width: '95%',
-                            overflow: 'hidden'
-                        }}
                     />
                     {layout.map((layoutItem, index) => (
                         <Bar

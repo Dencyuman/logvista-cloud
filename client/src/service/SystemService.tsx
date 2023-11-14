@@ -2,7 +2,7 @@ export const overviewLayout = [
     {
     dateKey: 'INFO',
     stackId: 'logCategory',
-    fill: '#2DCB7D',
+    fill: '#3B82F6',
     },
     {
     dateKey: 'WARNING',
