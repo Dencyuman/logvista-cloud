@@ -185,7 +185,6 @@ export default function Overview() {
     };
 
     // headerを定義
-
     const header = (
         <div className="flex justify-content-between align-items-center">
             <h1 className="m-0">System Overview</h1>

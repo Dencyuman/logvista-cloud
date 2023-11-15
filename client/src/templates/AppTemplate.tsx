@@ -34,7 +34,6 @@ export default function AppTemplate() {
     ]), []);
 
     const [selectedPage, setSelectedPage] = useState(pages[0]);
-    // const imageLink: string = "https://primefaces.org/cdn/primereact/images/organization/walter.jpg";
     const imageLink: undefined = undefined;
 
     useEffect(() => {
@@ -50,7 +49,7 @@ export default function AppTemplate() {
             <div className="col-12">
                 <Sidescreen visible={visible} setVisible={setVisible} selectedPage={selectedPage} setSelectedPage={setSelectedPage} pages={pages}/>
                 <Header selectedPage={selectedPage} setVisible={setVisible} imageLink={imageLink ? imageLink : undefined}/>
-                <div className="px-6 m-auto container">
+                <div className="px-2 sm:px-6 m-auto container">
                     <Outlet context={{ handlePageChange }}/>
                 </div>
             </div>

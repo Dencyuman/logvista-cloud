@@ -4,12 +4,12 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import React from 'react';
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { SchemasSummary } from '../../ApiClient';
-// import { Tag } from 'primereact/tag';
+import { SchemasSummary, SchemasLogResponse } from '../../ApiClient';
+import { Tag } from 'primereact/tag';
+import { Knob } from 'primereact/knob';
 
 type LogDetailDialogProps = {
     title: string;
@@ -20,76 +20,130 @@ type LogDetailDialogProps = {
 
 export default function LogDetailDialog({ title, summary, visible, onHide }: LogDetailDialogProps) {
     const latestLog = summary.latest_log;
-    // const getSeverity = (summary: SchemasSummary) => {
-    //     switch (summary.latest_log.level_name) {
-    //         case 'INFO':
-    //             return 'success';
-    //             case 'WARNING':
-    //                 return 'warning';
-    //         case 'ERROR':
-    //             return 'danger';
-    //         default:
-    //             return null;
-    //     }
-    // };
-    // const convertLevelNameToStatus = (levelName: string) => {
-    //     switch (levelName) {
-    //         case 'INFO':
-    //             return 'NORMAL';
-    //         case 'WARNING':
-    //             return 'WARNING';
-    //         case 'ERROR':
-    //             return 'ERRORED';
-    //         default:
-    //             return null;
-    //     }
-    // };
-    // const levelNameTemplate = (summary: SchemasSummary) => {
-    //     return <Tag value={convertLevelNameToStatus(summary.latest_log.level_name)} severity={getSeverity(summary)}></Tag>;
-    // };
+    // const askToAi = () => {
+    //     console.log(latestLog.exc_type);
+    // }
+    const getSeverity = (levelName: string) => {
+        switch (levelName) {
+            case 'INFO':
+                return 'success';
+            case 'WARNING':
+                return 'warning';
+            case 'ERROR':
+                return 'danger';
+            default:
+                return null;
+        }
+    };
+
+    function roundToFirstDecimal(num?: number): number {
+        if (num === undefined) {
+            return 0;
+        }
+        return Math.round(num * 10) / 10;
+    }
+
+    const levelNameTemplate = (log: SchemasLogResponse) => {
+        console.log(log)
+        return <Tag value={log.level_name} severity={getSeverity(log.level_name)}></Tag>;
+    };
+
+    const timestampTemplate = (log: SchemasLogResponse) => {
+        // log.timestamp を Date オブジェクトに変換
+        const date = new Date(log.timestamp);
+        // 日時フォーマットのオプションを設定
+        const options: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false // 24時間表記
+        };
+        // Intl.DateTimeFormat を使って日時をフォーマット
+        const formattedDate = new Intl.DateTimeFormat('ja-JP', options).format(date);
+        // フォーマットされた日時を返す
+        return formattedDate;
+    }
+
+    const excDetailTemplate = (log: SchemasLogResponse) => {
+        const excDetailFormatted = (log.exc_detail ?? "").split("\\n").join("\n");
+        return (
+            <pre className={`m-0 p-0 ${excDetailFormatted ? "p-3 bg-gray-800 text-gray-50 border-round-sm" : ""}`}>
+                {excDetailFormatted}
+            </pre>
+        );
+    }
+
+    const cpuPercentTemplate = (log: SchemasLogResponse) => {
+        return <Knob value={roundToFirstDecimal(log.cpu_percent)} readOnly />
+    }
+
+    const memoryPercentTemplate = (log: SchemasLogResponse) => {
+        return <Knob value={roundToFirstDecimal(log.memory_percent)} readOnly />
+    }
 
     return (
-        <Dialog header={title} visible={visible} style={{ width: '70vw' }} onHide={onHide} modal>
-            <div className="inline-flex py-1 px-2 align-items-center gap-2 border-round-sm surface-100">
-                <i className="pi pi-tag"></i>
-                <span className="font-semibold">{summary.category}</span>
+        <Dialog header={title} visible={visible} className="w-11 sm:w-9" onHide={onHide} modal>
+            <div className="pt-4 sm:p-0">
+                <div className="inline-flex py-1 px-2 align-items-center gap-2 border-round-sm surface-100">
+                    <i className="pi pi-tag"></i>
+                    <span className="font-semibold">{summary.category}</span>
+                </div>
+                <h2 className="m-0 py-3 px-4">{summary.name}</h2>
+
+                <DataTable className="mb-4" header="基本データ" value={[latestLog]}>
+                    <Column field="level_name" header="Level" body={levelNameTemplate}/>
+                    <Column field="message" header="Message" />
+                    <Column field="file_name" header="File" />
+                    <Column field="func_name" header="Function" />
+                    <Column field="lineno" header="LineNo" />
+                    <Column field="module" header="Module" />
+                    <Column field="name" header="Name" />
+                    <Column field="timestamp" header="Timestamp" body={timestampTemplate}/>
+                </DataTable>
+
+                <DataTable
+                    className="mb-4"
+                    header={
+                        <div className="flex align-items-center justify-content-start">
+                            エラー概要データ
+                            {/* <Button icon="pi pi-comment" className="ml-2 p-button-rounded p-button-outlined ask-to-ai" onClick={askToAi} rounded text severity="secondary"/>
+                            <Tooltip target={`.ask-to-ai`} content="Ask to Bard-AI." position="right"/> */}
+                        </div>
+                    }
+                    value={[latestLog]}>
+                    <Column field="exc_type" header="ExceptionType" />
+                    <Column field="exc_value" header="ExceptionValue" />
+                    <Column field="exc_detail" header="ExceptionDetail" body={excDetailTemplate}/>
+                </DataTable>
+
+                <DataTable className="mb-4" header="エラー詳細データ" value={latestLog.exc_traceback}>
+                    <Column field="tb_filename" header="Filename" />
+                    <Column field="tb_lineno" header="LineNo" />
+                    <Column field="tb_name" header="Name" />
+                    <Column field="tb_line" header="Line" />
+                </DataTable>
+
+                <DataTable header="オプションデータ" value={[latestLog]}>
+                    <Column field="cpu_percent" header="CPU(%)" body={cpuPercentTemplate}/>
+                    <Column field="process" header="Process" />
+                    <Column field="process_name" header="ProcessName" />
+                    <Column field="thread" header="Thread" />
+                    <Column field="thread_name" header="ThreadName" />
+                    <Column field="total_memory" header="TotalMemory" />
+                    <Column field="available_memory" header="AvailableMemory" />
+                    <Column field="memory_percent" header="Memory(%)" body={memoryPercentTemplate}/>
+                    <Column field="used_memory" header="UsedMemory" />
+                    <Column field="free_memory" header="FreeMemory" />
+                    <Column field="cpu_user_time" header="UserTime(CPU)" />
+                    <Column field="cpu_system_time" header="SystemTime(CPU)" />
+                    <Column field="cpu_idle_time" header="IdleTime(CPU)" />
+                    <Column field="levelno" header="LevelNumber" />
+                    <Column field="system_name" header="SystemName" />
+                </DataTable>
             </div>
-            <h2 className="m-0 py-3 px-4">{summary.name}</h2>
-
-            <DataTable className="mb-4" header="基本データ" value={[latestLog]}>
-                <Column field="level_name" header="Level" />
-                <Column field="message" header="Message" />
-                <Column field="file_name" header="File" />
-                <Column field="func_name" header="Function" />
-                <Column field="lineno" header="LineNo" body />
-                <Column field="module" header="Module" />
-                <Column field="name" header="Name" />
-                <Column field="timestamp" header="Timestamp" />
-            </DataTable>
-
-            <DataTable className="mb-4" header="詳細データ" value={[latestLog]}>
-                <Column field="exc_type" header="Exception Type" />
-                <Column field="exc_value" header="Exception Value" />
-                <Column field="exc_detail" header="Exception Detail" />
-            </DataTable>
-
-            <DataTable header="オプションデータ" value={[latestLog]}>
-                <Column field="cpu_percent" header="CPU %" />
-                <Column field="process" header="Process" />
-                <Column field="process_name" header="Process Name" />
-                <Column field="thread" header="Thread" />
-                <Column field="thread_name" header="Thread Name" />
-                <Column field="total_memory" header="Total Memory" />
-                <Column field="available_memory" header="Available Memory" />
-                <Column field="memory_percent" header="Memory %" />
-                <Column field="used_memory" header="Used Memory" />
-                <Column field="free_memory" header="Free Memory" />
-                <Column field="cpu_user_time" header="CPU User Time" />
-                <Column field="cpu_system_time" header="CPU System Time" />
-                <Column field="cpu_idle_time" header="CPU Idle Time" />
-                <Column field="levelno" header="Level Number" />
-                <Column field="system_name" header="System Name" />
-            </DataTable>
         </Dialog>
     );
 }
