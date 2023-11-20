@@ -6,8 +6,7 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 
 import { Button } from 'primereact/button';
 import { BreadCrumb } from 'primereact/breadcrumb';
-import { Page } from '../templates/AppTemplate';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from 'primereact/avatar';
 import { useEffect, useState } from 'react';
 
@@ -17,25 +16,26 @@ type BreadcrumbItem = {
 };
 
 type HeaderProps = {
-    selectedPage: Page;
     setVisible: (value: boolean) => void;
     imageLink?: string;
 };
 
-export default function Header({ selectedPage, setVisible, imageLink }: HeaderProps) {
+export default function Header({ setVisible, imageLink }: HeaderProps) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([]);
 
     useEffect(() => {
-        setBreadcrumbItems([
-            {
-                label: selectedPage.name,
-                command: () => {
-                    navigate(selectedPage.path);
-                }
-            }
-        ]);
-    }, [selectedPage, navigate]);
+        const pathnames = location.pathname.split('/').filter(x => x);
+        const breadcrumbItems = pathnames.map((path, index) => {
+            const url = `/${pathnames.slice(0, index + 1).join('/')}`;
+            return {
+                label: path.charAt(0).toUpperCase() + path.slice(1),
+                command: () => navigate(url),
+            };
+        });
+        setBreadcrumbItems(breadcrumbItems);
+    }, [location, navigate]);
 
     const home = {
         icon: 'pi pi-home',

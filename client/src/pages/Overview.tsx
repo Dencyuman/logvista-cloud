@@ -4,7 +4,7 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { DataView } from 'primereact/dataview';
@@ -14,9 +14,10 @@ import { overviewLayout } from '../service/SystemService';
 import { OverviewData, OverviewChart } from '../components/charts/OverviewChart';
 import apiClient, { SchemasSummary, SchemasSummaryData } from '../ApiClient'
 import { AppContextType } from '../templates/AppTemplate';
-import { SkeletonGridItem } from '../components/overview/Skelton';
+import { SkeletonGridItem } from '../components/overview/SkeltonGridItem';
 import CategoryTag from '../components/dialogs/CategoryTag';
 import LogDetailDialog from '../components/dialogs/LogDetailDialog';
+import { Menubar } from 'primereact/menubar';
 
 
 export default function Overview() {
@@ -87,14 +88,14 @@ export default function Overview() {
     }, []);
 
     const { handlePageChange } = useOutletContext<AppContextType>();
-    const redirectToDashboard = () => {
+    const redirectToDashboard = (systemId: string) => {
         const dashboardPage = {
             name: 'DashBoard',
-            path: '/dashboard',
+            path: `/dashboard/${systemId}`,
             iconClassName: 'pi pi-chart-bar'
         };
         handlePageChange(dashboardPage);
-        navigate('/dashboard');
+        navigate(dashboardPage.path);
     };
 
     const getSeverity = (summary: SchemasSummary) => {
@@ -184,13 +185,6 @@ export default function Overview() {
         setLogDetailVisible(true);
     };
 
-    // headerを定義
-    const header = (
-        <div className="flex justify-content-between align-items-center">
-            <h1 className="m-0">System Overview</h1>
-        </div>
-    );
-
     const gridItem = (summary: SchemasSummary) => {
         // 各ボタンに一意のクラス名を生成
         const buttonClassName = `goToDashboardButton-${summary.id}`;
@@ -231,7 +225,7 @@ export default function Overview() {
                                 <div className="mr-2">({timeAgo(new Date(summary.latest_log.timestamp))})</div>
                             </div>
                         </div>
-                        <Button className={buttonClassName} icon="pi pi-chart-bar" onClick={redirectToDashboard} rounded text severity="secondary"></Button>
+                        <Button className={buttonClassName} icon="pi pi-chart-bar" onClick={() => redirectToDashboard(summary.id)} rounded text severity="secondary"></Button>
                         <Tooltip target={`.${buttonClassName}`} content="Jump to DashBoard." position="left"/>
                     </div>
                 </div>
@@ -247,14 +241,26 @@ export default function Overview() {
         return gridItem(summary);
     };
 
+    const start = (
+        <div className="flex align-items-center sm:pr-2">
+            <img alt="logo" src="https://raw.githubusercontent.com/Dencyuman/logvista-cloud/main/client/src/assets/logo.png" height="40" className="mx-2"></img>
+            <h2 className="my-0">Overview</h2>
+        </div>
+    );
+
     return (
         <div className="card">
+            <div className="w-full">
+                <Menubar start={start} />
+            </div>
             <Tooltip target=".goToDashBoardButton" content="Jump to DashBoard." position="left"/>
-            <DataView value={summary} layout={"grid"} itemTemplate={itemTemplate} header={header} />
+            <DataView value={summary} layout={"grid"} itemTemplate={itemTemplate} />
             {selectedSummary && (
                 <LogDetailDialog
                     title="最新ログ詳細"
-                    summary={selectedSummary}
+                    name={selectedSummary.name}
+                    category={selectedSummary.category}
+                    logData={selectedSummary.latest_log}
                     visible={logDetailVisible}
                     onHide={() => setLogDetailVisible(false)}
                 />

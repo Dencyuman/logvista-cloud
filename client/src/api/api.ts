@@ -904,7 +904,7 @@ export const LogsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async logsGet(page?: number, pageSize?: number, startDate?: string, endDate?: string, levelName?: string, systemName?: string, containMsg?: string, excType?: string, excDetail?: string, fileName?: string, lineno?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<SchemasPaginatedLogResponse>>> {
+        async logsGet(page?: number, pageSize?: number, startDate?: string, endDate?: string, levelName?: string, systemName?: string, containMsg?: string, excType?: string, excDetail?: string, fileName?: string, lineno?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SchemasPaginatedLogResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.logsGet(page, pageSize, startDate, endDate, levelName, systemName, containMsg, excType, excDetail, fileName, lineno, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -946,7 +946,7 @@ export const LogsApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        logsGet(page?: number, pageSize?: number, startDate?: string, endDate?: string, levelName?: string, systemName?: string, containMsg?: string, excType?: string, excDetail?: string, fileName?: string, lineno?: number, options?: any): AxiosPromise<Array<SchemasPaginatedLogResponse>> {
+        logsGet(page?: number, pageSize?: number, startDate?: string, endDate?: string, levelName?: string, systemName?: string, containMsg?: string, excType?: string, excDetail?: string, fileName?: string, lineno?: number, options?: any): AxiosPromise<SchemasPaginatedLogResponse> {
             return localVarFp.logsGet(page, pageSize, startDate, endDate, levelName, systemName, containMsg, excType, excDetail, fileName, lineno, options).then((request) => request(axios, basePath));
         },
         /**

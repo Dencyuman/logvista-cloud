@@ -29,7 +29,7 @@ export default function AppTemplate() {
         { name: 'Home', path: '/', iconClassName: 'pi pi-home' },
         { name: 'Overview', path: '/overview', iconClassName: 'pi pi-th-large'},
         { name: 'DashBoard', path: '/dashboard', iconClassName: 'pi pi-chart-bar' },
-        { name: 'Report', path: '/report', iconClassName: 'pi pi-chart-pie' },
+        // { name: 'Report', path: '/report', iconClassName: 'pi pi-chart-pie' },
         { name: 'Settings', path: '/settings', iconClassName: 'pi pi-cog' },
     ]), []);
 
@@ -48,7 +48,7 @@ export default function AppTemplate() {
         <div className="card grid ">
             <div className="col-12">
                 <Sidescreen visible={visible} setVisible={setVisible} selectedPage={selectedPage} setSelectedPage={setSelectedPage} pages={pages}/>
-                <Header selectedPage={selectedPage} setVisible={setVisible} imageLink={imageLink ? imageLink : undefined}/>
+                <Header setVisible={setVisible} imageLink={imageLink ? imageLink : undefined}/>
                 <div className="px-2 sm:px-6 m-auto container">
                     <Outlet context={{ handlePageChange }}/>
                 </div>

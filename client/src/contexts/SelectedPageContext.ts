@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, createContext } from 'react';
+import { Dispatch, SetStateAction, createContext } from 'react';
 
 export type Page = {
     name: string;

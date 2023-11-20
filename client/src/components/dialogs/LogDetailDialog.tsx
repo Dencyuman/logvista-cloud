@@ -7,26 +7,28 @@ import "primereact/resources/themes/lara-light-indigo/theme.css";
 import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { SchemasSummary, SchemasLogResponse } from '../../ApiClient';
+import { SchemasLogResponse } from '../../ApiClient';
 import { Tag } from 'primereact/tag';
 import { Knob } from 'primereact/knob';
 
 type LogDetailDialogProps = {
     title: string;
-    summary: SchemasSummary;
+    name?: string;
+    category?: string;
+    logData: SchemasLogResponse;
     visible: boolean;
     onHide: () => void;
 };
 
-export default function LogDetailDialog({ title, summary, visible, onHide }: LogDetailDialogProps) {
-    const latestLog = summary.latest_log;
+export default function LogDetailDialog({ title, name, category, logData, visible, onHide }: LogDetailDialogProps) {
+    const latestLog = logData;
     // const askToAi = () => {
     //     console.log(latestLog.exc_type);
     // }
     const getSeverity = (levelName: string) => {
         switch (levelName) {
             case 'INFO':
-                return 'success';
+                return 'info';
             case 'WARNING':
                 return 'warning';
             case 'ERROR':
@@ -89,9 +91,9 @@ export default function LogDetailDialog({ title, summary, visible, onHide }: Log
             <div className="pt-4 sm:p-0">
                 <div className="inline-flex py-1 px-2 align-items-center gap-2 border-round-sm surface-100">
                     <i className="pi pi-tag"></i>
-                    <span className="font-semibold">{summary.category}</span>
+                    <span className="font-semibold">{category}</span>
                 </div>
-                <h2 className="m-0 py-3 px-4">{summary.name}</h2>
+                <h2 className="m-0 py-3 px-4">{name}</h2>
 
                 <DataTable className="mb-4" header="基本データ" value={[latestLog]}>
                     <Column field="level_name" header="Level" body={levelNameTemplate}/>

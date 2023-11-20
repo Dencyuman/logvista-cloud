@@ -4,7 +4,7 @@ import "primeicons/primeicons.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 // ---
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from 'recharts';
 
 export interface OverviewData {
     name: string;
@@ -24,6 +24,9 @@ export interface OverviewChartProps {
     data: OverviewData[];
     layout: Layout[];
     customLayoutProps?: CustomLayouyProps;
+    showBrush?: boolean;
+    brushOrigin?: 'start' | 'end';
+    brushLength?: number;
 }
 
 export interface CustomLayouyProps {
@@ -36,22 +39,36 @@ export interface CustomLayouyProps {
 }
 
 // 関数コンポーネントの引数は、propsオブジェクトです。
-export function OverviewChart({data, layout, customLayoutProps = {
-    width: '100%',
-    height: '100%',
-    top: 0,
-    right: 0,
-    left: 0,
-    bottom: 0
-}}: OverviewChartProps) {
+export function OverviewChart({
+    data,
+    layout,
+    customLayoutProps = {
+        width: '100%',
+        height: '100%',
+        top: 0,
+        right: 0,
+        left: 0,
+        bottom: 0
+    },
+    showBrush = false,
+    brushOrigin = 'end',
+    brushLength = 30
+}: OverviewChartProps) {
     const reversedData = [...data].reverse();
 
+    let brushStart, brushEnd;
+    if (brushOrigin === 'end') {
+        brushStart = Math.max(reversedData.length - brushLength, 0);
+        brushEnd = reversedData.length - 1;
+    } else {
+        brushStart = 0;
+        brushEnd = Math.min(brushLength - 1, reversedData.length - 1);
+    }
+
     return (
-        <div style={{ width:customLayoutProps.width, height: customLayoutProps.height }}>
+        <div style={{ width: customLayoutProps.width, height: customLayoutProps.height }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                    width={500}
-                    height={300}
                     data={reversedData}
                     margin={{
                         top: customLayoutProps.top,
@@ -66,6 +83,12 @@ export function OverviewChart({data, layout, customLayoutProps = {
                     <Tooltip />
                     <Legend
                         layout="horizontal"
+                        wrapperStyle={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            transform: 'translateX(30px)'
+                        }}
                     />
                     {layout.map((layoutItem, index) => (
                         <Bar
@@ -75,6 +98,15 @@ export function OverviewChart({data, layout, customLayoutProps = {
                             fill={layoutItem.fill}
                         />
                     ))}
+                    {showBrush && (
+                        <Brush
+                            dataKey="name"
+                            height={30}
+                            stroke="#8884d8"
+                            startIndex={brushStart}
+                            endIndex={brushEnd}
+                        />
+                    )}
                 </BarChart>
             </ResponsiveContainer>
         </div>
