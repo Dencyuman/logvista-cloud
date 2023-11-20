@@ -83,13 +83,13 @@ export default function LogDataTable({logData}: { logData: SchemasPaginatedLogRe
                 <Column sortable field="timestamp" header="Timestamp" body={timestampTemplate} style={{ minWidth: '12rem' }}/>
                 <Column filter field="message" header="Message" style={{ minWidth: '12rem' }}/>
                 <Column filter field="name" header="Name" style={{ minWidth: '12rem' }}/>
-                <Column filter field="system_name" header="System" style={{ minWidth: '12rem' }}/>
                 <Column filter field="func_name" header="Function" style={{ minWidth: '8rem' }} />
                 <Column sortable filter dataType="numeric" field="lineno" header="LineNo" style={{ minWidth: '4rem' }} />
                 <Column filter field="module" header="Module" style={{ minWidth: '4rem' }} />
                 <Column filter field="exc_type" header="ExceptionType" style={{ minWidth: '8rem' }} />
                 <Column sortable filter dataType="numeric" field="cpu_percent" header="CPU(%)" style={{ minWidth: '8rem' }} />
                 <Column sortable filter dataType="numeric" field="memory_percent" header="Memory(%)" style={{ minWidth: '8rem' }} />
+                {/* <Column field="system.name" header="System" style={{ minWidth: '12rem' }}/> */}
             </DataTable>
             {selectedLog != null &&
                 <LogDetailDialog

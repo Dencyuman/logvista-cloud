@@ -48,7 +48,7 @@ export default function Header({ setVisible, imageLink }: HeaderProps) {
         <div className="flex justify-content-between">
             <div className="flex align-items-center">
                 <Button icon="pi pi-bars" text rounded severity="secondary" aria-label="ナビゲーションメニュー" onClick={() => setVisible(true)}/>
-                <BreadCrumb model={breadcrumbItems} home={home} style={{border: 'none'}}/>
+                <BreadCrumb model={breadcrumbItems} home={home} className="border-none hidden sm:block" />
             </div>
             <div className="flex align-items-center">
                 <Button icon="pi pi-search" text rounded className="p-button-rounded p-button-secondary" aria-label="検索" />

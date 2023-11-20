@@ -9,7 +9,8 @@ import { Sidebar } from 'primereact/sidebar';
 import { ListBox } from 'primereact/listbox';
 
 import { Page } from '../templates/AppTemplate';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Skeleton } from 'primereact/skeleton';
 
 interface SidescreenProps{
     visible: boolean;
@@ -22,6 +23,7 @@ interface SidescreenProps{
 export default function Sidescreen({visible, setVisible, selectedPage, setSelectedPage, pages}: SidescreenProps) {
     const navigate = useNavigate();
     const location = useLocation();
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     useEffect(() => {
         const currentPath = location.pathname;
@@ -44,6 +46,10 @@ export default function Sidescreen({visible, setVisible, selectedPage, setSelect
         handleSelectionChange(e.value);
     };
 
+    const onImageLoad = () => {
+        setImageLoaded(true);
+    };
+
     const handleSelectionChange = (selectedPage: Page) => {
         // 同じページが選択された場合は遷移しない
         console.log(location.pathname, selectedPage.path);
@@ -54,9 +60,24 @@ export default function Sidescreen({visible, setVisible, selectedPage, setSelect
         setVisible(false);
     }
 
+    const onImageError = () => {
+        setImageLoaded(false);
+    };
+
     return (
         <Sidebar className="p-0" visible={visible} onHide={() => setVisible(false)}>
-            <img alt="logo" src="https://raw.githubusercontent.com/Dencyuman/logvista-cloud/main/client/src/assets/logo-with-name.png" className="w-full px-6 mb-4"></img>
+        {!imageLoaded && (
+            <div className="w-full">
+                <Skeleton shape="rectangle" height="206px" className="m-auto w-8 px-6 mb-4" />
+            </div>
+        )}
+        <img
+            alt="logo"
+            src="https://raw.githubusercontent.com/Dencyuman/logvista-cloud/main/client/src/assets/logo-with-name.png"
+            className={`w-full px-6 mb-4 ${!imageLoaded ? 'hidden' : ''}`}
+            onLoad={onImageLoad}
+            onError={onImageError}
+        ></img>
             <ListBox value={selectedPage} options={pages} onChange={onListBoxChange} itemTemplate={countryTemplate} optionLabel="name" className="w-full border-none" />
         </Sidebar>
     )
