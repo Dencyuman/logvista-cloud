@@ -94,7 +94,6 @@ export default function LogDataTable({logData}: { logData: SchemasPaginatedLogRe
             {selectedLog != null &&
                 <LogDetailDialog
                     title="最新ログ詳細"
-                    name={selectedLog.system_name}
                     logData={selectedLog}
                     visible={logDetailVisible}
                     onHide={() => {setLogDetailVisible(false); setSelectedLog(null);}}

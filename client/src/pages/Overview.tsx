@@ -88,10 +88,10 @@ export default function Overview() {
     }, []);
 
     const { handlePageChange } = useOutletContext<AppContextType>();
-    const redirectToDashboard = (systemId: string) => {
+    const redirectToDashboard = (systemName: string | undefined) => {
         const dashboardPage = {
             name: 'DashBoard',
-            path: `/dashboard/${systemId}`,
+            path: `/dashboard/${systemName ?? ''}`,
             iconClassName: 'pi pi-chart-bar'
         };
         handlePageChange(dashboardPage);
@@ -225,7 +225,7 @@ export default function Overview() {
                                 <div className="mr-2">({timeAgo(new Date(summary.latest_log.timestamp))})</div>
                             </div>
                         </div>
-                        <Button className={buttonClassName} icon="pi pi-chart-bar" onClick={() => redirectToDashboard(summary.id)} rounded text severity="secondary"></Button>
+                        <Button className={buttonClassName} icon="pi pi-chart-bar" onClick={() => redirectToDashboard(summary.name)} rounded text severity="secondary"></Button>
                         <Tooltip target={`.${buttonClassName}`} content="Jump to DashBoard." position="left"/>
                     </div>
                 </div>
@@ -258,8 +258,6 @@ export default function Overview() {
             {selectedSummary && (
                 <LogDetailDialog
                     title="最新ログ詳細"
-                    name={selectedSummary.name}
-                    category={selectedSummary.category}
                     logData={selectedSummary.latest_log}
                     visible={logDetailVisible}
                     onHide={() => setLogDetailVisible(false)}

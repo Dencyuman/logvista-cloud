@@ -13,14 +13,12 @@ import { Knob } from 'primereact/knob';
 
 type LogDetailDialogProps = {
     title: string;
-    name?: string;
-    category?: string;
     logData: SchemasLogResponse;
     visible: boolean;
     onHide: () => void;
 };
 
-export default function LogDetailDialog({ title, name, category, logData, visible, onHide }: LogDetailDialogProps) {
+export default function LogDetailDialog({ title, logData, visible, onHide }: LogDetailDialogProps) {
     const latestLog = logData;
     // const askToAi = () => {
     //     console.log(latestLog.exc_type);
@@ -91,11 +89,11 @@ export default function LogDetailDialog({ title, name, category, logData, visibl
             <div className="pt-4 sm:p-0">
                 <div className="inline-flex py-1 px-2 align-items-center gap-2 border-round-sm surface-100">
                     <i className="pi pi-tag"></i>
-                    <span className="font-semibold">{category}</span>
+                    <span className="font-semibold">{latestLog.system.category}</span>
                 </div>
-                <h2 className="m-0 py-3 px-4">{name}</h2>
+                <h2 className="m-0 py-3 px-4">{latestLog.system.name}</h2>
 
-                <DataTable className="mb-4" header="基本データ" value={[latestLog]}>
+                <DataTable className="mb-4" header="ログ基本データ" value={[latestLog]}>
                     <Column field="level_name" header="Level" body={levelNameTemplate}/>
                     <Column field="message" header="Message" />
                     <Column field="file_name" header="File" />
@@ -143,7 +141,7 @@ export default function LogDetailDialog({ title, name, category, logData, visibl
                     <Column field="cpu_system_time" header="SystemTime(CPU)" />
                     <Column field="cpu_idle_time" header="IdleTime(CPU)" />
                     <Column field="levelno" header="LevelNumber" />
-                    <Column field="system_name" header="SystemName" />
+                    <Column field="system.name" header="SystemName" />
                 </DataTable>
             </div>
         </Dialog>

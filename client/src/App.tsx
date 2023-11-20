@@ -19,7 +19,7 @@ export default function App() {
                 <Route path="" element={<AppTemplate />}>
                     <Route index path="" element={<Home />} />
                     <Route path="overview" element={<Overview />} />
-                    <Route path="dashboard/:systemId?" element={<DashBoard />} />
+                    <Route path="dashboard/:systemName?" element={<DashBoard />} />
                     <Route path="report" element={<Report />} />
                     <Route path="settings" element={<Settings />} />
                 </Route>

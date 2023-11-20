@@ -20,7 +20,7 @@ const groupSystemsByCategory = (systems: SchemasSystemResponse[]) => {
         // カテゴリーと名前がundefinedでないことを確認
         if (system.category && system.name) {
             acc[system.category] = acc[system.category] || [];
-            acc[system.category].push({ label: system.name, value: system.id });
+            acc[system.category].push({ label: system.name, value: system.name });
         }
         return acc;
     }, {} as Record<string, Array<{ label: string; value: string }>>);
@@ -34,6 +34,7 @@ const groupSystemsByCategory = (systems: SchemasSystemResponse[]) => {
 export default function DashBoard() {
     const navigate = useNavigate();
     const params = useParams();
+    console.log(params);
     const [timeSpan] = useState<number>(10);
     const [dataCount] = useState<number>(1000);
     const [pageSize] = useState<number>(1200);
@@ -46,8 +47,8 @@ export default function DashBoard() {
     });
     const [summary, setSummary] = useState<SchemasSummary[]>([]);
     const [systems, setSystems] = useState<SchemasSystemResponse[]>([]);
-    const [selectedSystemId, setSelectedSystemId] = useState<string | undefined>(params.systemId);
-    const systemIdExists = selectedSystemId != undefined;
+    const [selectedSystemName, setSelectedSystemName] = useState<string | undefined>(params.systemName);
+    const systemNameExists = selectedSystemName != undefined;
     const [isSummaryLoading, setIsSummaryLoading] = useState(false);
     const [isLogDataLoading, setIsLogDataLoading] = useState(false);
 
@@ -65,11 +66,11 @@ export default function DashBoard() {
     }, []);
 
     useEffect(() => {
-        if (selectedSystemId && systems.length > 0) {
+        if (selectedSystemName && systems.length > 0) {
             setIsSummaryLoading(true);
             const fetchSummaryData = async () => {
                 try {
-                    const res = await apiClient.systemsSummaryGet(selectedSystemId, timeSpan, dataCount);
+                    const res = await apiClient.systemsSummaryGet(selectedSystemName, timeSpan, dataCount);
                     setSummary(res.data);
                 } catch (error) {
                     console.error("Error fetching summary data: ", error);
@@ -79,17 +80,16 @@ export default function DashBoard() {
             };
             fetchSummaryData();
         }
-    }, [selectedSystemId, systems, timeSpan, dataCount]);
+    }, [selectedSystemName, systems, timeSpan, dataCount]);
 
     useEffect(() => {
-        if (selectedSystemId && systems.length > 0) {
+        if (selectedSystemName && systems.length > 0) {
             setIsLogDataLoading(true);
             const fetchLogData = async () => {
-                const systemName = systems.find(system => system.id === selectedSystemId)?.name;
-                if (!systemName) return;
+                if (!selectedSystemName) return;
 
                 try {
-                    const res = await apiClient.logsGet(1, pageSize, undefined, undefined, undefined, systemName);
+                    const res = await apiClient.logsGet(1, pageSize, undefined, undefined, undefined, selectedSystemName);
                     setLogData(res.data);
                 } catch (error) {
                     console.error("Error fetching log data: ", error);
@@ -100,11 +100,11 @@ export default function DashBoard() {
 
             fetchLogData();
         }
-    }, [selectedSystemId, systems, pageSize]);
+    }, [selectedSystemName, systems, pageSize]);
 
     useEffect(() => {
-        setSelectedSystemId(params.systemId);
-    }, [params.systemId]);
+        setSelectedSystemName(params.systemName);
+    }, [params.systemName]);
 
     function formatBaseTime(date: Date): string {
         return new Intl.DateTimeFormat('ja-JP', {
@@ -130,7 +130,7 @@ export default function DashBoard() {
     const systemOptions = groupSystemsByCategory(systems);
 
     const onSystemChange = (e: { value: string | undefined }) => {
-        setSelectedSystemId(e.value);
+        setSelectedSystemName(e.value);
         navigate(`/dashboard/${e.value}`);
     };
 
@@ -142,11 +142,11 @@ export default function DashBoard() {
     );
 
     const end = <Dropdown
-        value={selectedSystemId}
+        value={selectedSystemName}
         options={systemOptions}
         onChange={onSystemChange}
         placeholder="Select a System"
-        className={"font-bold" + (selectedSystemId ? "" : " fadein animation-duration-1000 animation-iteration-infinite")}
+        className={"font-bold" + (selectedSystemName ? "" : " fadein animation-duration-1000 animation-iteration-infinite")}
         filter={true}
         optionGroupLabel="label"
         optionGroupChildren="items"
@@ -161,7 +161,7 @@ return (
             <div className="w-full">
                 <Menubar start={start} end={end} />
             </div>
-            {systemIdExists && (
+            {systemNameExists && (
                 <>
                     {isSummaryLoading || summary.length === 0 ? (
                         <SkeletonChart />

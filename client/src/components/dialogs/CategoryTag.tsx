@@ -26,7 +26,8 @@ export default function CategoryTag({ summary, onCategoryChange, uniqueCategorie
 
     const onConfirm = async () => {
         try {
-            await apiClient.systemsPut(summary.id, { category: selectedCategory });
+            if (!summary.name) throw new Error("summary.name is undefined");
+            await apiClient.systemsSystemNamePut(summary.name, { category: selectedCategory });
             setDisplayDialog(false);
             await fetchCategories();
             onCategoryChange();
